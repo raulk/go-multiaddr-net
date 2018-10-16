@@ -39,6 +39,9 @@ var table = map[string]int{
 	// Documentation (TEST-NET-3).
 	"/ip4/203.0.113.0/ipcidr/24": RoutabilitySpecialPurpose,
 
+	// IPv4 Multicast.
+	"/ip4/224.0.0.0/ipcidr/4": RoutabilitySpecialPurpose,
+
 	// Reserved for Future Use.
 	"/ip4/240.0.0.0/ipcidr/4": RoutabilitySpecialPurpose,
 
@@ -111,6 +114,9 @@ var table = map[string]int{
 
 	// Linked-Scoped Unicast
 	"/ip6/fe80::/ipcidr/10": RoutabilityLinkLocal,
+
+	// IPv6 Multicast.
+	"/ip6/ff00::/ipcidr/8": RoutabilitySpecialPurpose,
 }
 
 var masks map[*net.IPNet]int
