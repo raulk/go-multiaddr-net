@@ -5,22 +5,22 @@ import (
 	"net"
 
 	ma "github.com/multiformats/go-multiaddr"
+	mamask "github.com/whyrusleeping/multiaddr-filter"
 )
-import mamask "github.com/whyrusleeping/multiaddr-filter"
 
 const (
-	RoutabilityUnknown = iota
-	RoutabilityPublic
+	RoutabilityPublic = iota
 	RoutabilityPrivate
-	RoutabilityPhysical
 	RoutabilityLinkLocal
 	RoutabilitySelf
-	RoutabilityError
 	RoutabilitySpecialPurpose
+	RoutabilityError
 )
 
 // Reference: https://tools.ietf.org/html/rfc6890
 var table = map[string]int{
+	/* ~~~ IPv4 ~~~*/
+
 	// "This host on this network"
 	"/ip4/0.0.0.0/ipcidr/8": RoutabilitySpecialPurpose,
 
@@ -69,9 +69,48 @@ var table = map[string]int{
 	// Localhost.
 	"/ip4/127.0.0.0/ipcidr/8": RoutabilitySelf,
 
+	/* ~~~ IPv6 ~~~ */
+
 	"/ip6/::1/ipcidr/128": RoutabilitySelf,
 
+	// Unspecified Address
+	"/ip6/::/ipcidr/128": RoutabilitySpecialPurpose,
 
+	// TODO IPv4-IPv6 Translat.
+	// "/ip6/64:ff9b::/ipcidr/96": ,
+
+	// TODO IPv4-mapped Address
+	// "/ip6/::ffff:0:0/ipcidr/96": ,
+
+	// Discard-Only Address Block
+	"/ip6/100::/ipcidr/64": RoutabilitySpecialPurpose,
+
+	// IETF Protocol Assignments
+	"/ip6/2001::/ipcidr/23": RoutabilitySpecialPurpose,
+
+	// TEREDO
+	"/ip6/2001::/ipcidr/32": RoutabilitySpecialPurpose,
+
+	// Benchmarking
+	"/ip6/2001:2::/ipcidr/48": RoutabilitySpecialPurpose,
+
+	// Documentation
+	"/ip6/2001:db8::/ipcidr/32": RoutabilitySpecialPurpose,
+
+	// ORCHID
+	"/ip6/2001:10::/ipcidr/28": RoutabilitySpecialPurpose,
+
+	// TODO 6to4
+	// "/ip6/2002::/ipcidr/16": ,
+
+	// Private networks.
+	"/ip6/fd00::/ipcidr/8": RoutabilityPrivate,
+
+	// Unique-Local
+	"/ip6/fc00::/ipcidr/7": RoutabilityPrivate,
+
+	// Linked-Scoped Unicast
+	"/ip6/fe80::/ipcidr/10": RoutabilityLinkLocal,
 }
 
 var masks map[*net.IPNet]int
@@ -95,7 +134,7 @@ func init() {
 func Routability(addr ma.Multiaddr) int {
 	ip, err := toNetIP(addr)
 	if err != nil {
-		return RoutabilityUnknown
+		return RoutabilityError
 	}
 	for mask, seg := range masks {
 		if mask.Contains(ip) {
