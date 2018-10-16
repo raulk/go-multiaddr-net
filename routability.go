@@ -70,6 +70,8 @@ var table = map[string]int{
 	"/ip4/127.0.0.0/ipcidr/8": RoutabilitySelf,
 
 	"/ip6/::1/ipcidr/128": RoutabilitySelf,
+
+
 }
 
 var masks map[*net.IPNet]int
@@ -100,7 +102,7 @@ func Routability(addr ma.Multiaddr) int {
 			return seg
 		}
 	}
-	return RoutabilityUnknown
+	return RoutabilityPublic
 }
 
 func IsRoutable(addr ma.Multiaddr, segment int) bool {
@@ -117,7 +119,7 @@ func IsRoutable(addr ma.Multiaddr, segment int) bool {
 			return true
 		}
 	}
-	return false
+	return segment == RoutabilityPublic
 }
 
 func toNetIP(addr ma.Multiaddr) (net.IP, error) {
